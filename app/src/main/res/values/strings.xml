@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Quack</string>
+    <string name="edittext_search_hint">Search</string>
+    <string name="btn_search">Submit</string>
+</resources>
