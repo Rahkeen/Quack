@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,13 @@ import android.widget.TextView;
 import java.util.List;
 
 import me.rikinmarfatia.quack.models.SearchResult;
+import me.rikinmarfatia.quack.models.Topic;
+import me.rikinmarfatia.quack.services.DuckDuckGoService;
+import me.rikinmarfatia.quack.services.RetrofitService;
+import retrofit.Call;
+import retrofit.Callback;
+import retrofit.Response;
+import retrofit.Retrofit;
 
 /**
  * Handles input for queries and displays results
@@ -22,17 +30,26 @@ import me.rikinmarfatia.quack.models.SearchResult;
  */
 public class SearchFragment extends Fragment {
 
+    public static final String TAG = "SearchFragment";
+    private static final String RESULT_FORMAT = "json";
+
     private EditText mSearchBox;
     private Button mSearchButton;
     private RecyclerView mSearchResults;
+    private ResultAdapter mAdapter;
+    private DuckDuckGoService mQuacker;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mQuacker = RetrofitService.createService(DuckDuckGoService.class);
+
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_search, container, false);
 
         mSearchBox = (EditText) v.findViewById(R.id.edittext_search);
@@ -41,7 +58,25 @@ public class SearchFragment extends Fragment {
         mSearchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO: Process the search query.
+                String queryString = mSearchBox.getText().toString();
+
+                if(queryString.length() != 0) {
+                    Call<SearchResult> query = mQuacker.search(queryString, RESULT_FORMAT);
+                    query.enqueue(new Callback<SearchResult>() {
+                        @Override
+                        public void onResponse(Response<SearchResult> response, Retrofit retrofit) {
+                            List<Topic> topics = response.body().getRelatedTopics();
+                            mAdapter = new ResultAdapter(topics);
+                            mSearchResults.setAdapter(mAdapter);
+                        }
+
+                        @Override
+                        public void onFailure(Throwable t) {
+                            Log.d(TAG, t.getMessage());
+                        }
+                    });
+                }
+
             }
         });
 
@@ -64,9 +99,9 @@ public class SearchFragment extends Fragment {
 
     private class ResultAdapter extends RecyclerView.Adapter<ResultHolder> {
 
-        private List<SearchResult> mResults;
+        private List<Topic> mResults;
 
-        public ResultAdapter(List<SearchResult> results) {
+        public ResultAdapter(List<Topic> results) {
             mResults = results;
         }
 
@@ -79,12 +114,13 @@ public class SearchFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(ResultHolder holder, int position) {
-
+            Topic topic = mResults.get(position);
+            holder.mResultText.setText(topic.getText());
         }
 
         @Override
         public int getItemCount() {
-            return 0;
+            return mResults.size();
         }
     }
 }

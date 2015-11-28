@@ -1,27 +1,27 @@
 package me.rikinmarfatia.quack.models;
 
+import java.util.List;
+
 /**
- * Holds search result data.
+ * POJO to hold query result data
  *
  * @author Rikin (rikinm10@gmail.com)
  */
 public class SearchResult {
-    private String text;
-    private String url;
+    private List<Topic> RelatedTopics;
 
-    public void setText(String text) {
-        this.text = text;
+    public List<Topic> getRelatedTopics() {
+        return RelatedTopics;
     }
 
-    public String getText() {
-        return text;
-    }
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+        for(Topic topic : RelatedTopics) {
+            result.append(topic.getText()).append("\n");
+        }
 
-    public String getUrl() {
-        return url;
+        return result.toString();
     }
 }
