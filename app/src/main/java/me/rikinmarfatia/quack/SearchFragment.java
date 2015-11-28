@@ -1,6 +1,8 @@
 package me.rikinmarfatia.quack;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -8,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -18,6 +21,7 @@ import me.rikinmarfatia.quack.models.SearchResult;
 import me.rikinmarfatia.quack.models.Topic;
 import me.rikinmarfatia.quack.services.DuckDuckGoService;
 import me.rikinmarfatia.quack.services.RetrofitService;
+import me.rikinmarfatia.quack.util.DuckOptions;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.Response;
@@ -31,7 +35,6 @@ import retrofit.Retrofit;
 public class SearchFragment extends Fragment {
 
     public static final String TAG = "SearchFragment";
-    private static final String RESULT_FORMAT = "json";
 
     private EditText mSearchBox;
     private Button mSearchButton;
@@ -61,7 +64,8 @@ public class SearchFragment extends Fragment {
                 String queryString = mSearchBox.getText().toString();
 
                 if(queryString.length() != 0) {
-                    Call<SearchResult> query = mQuacker.search(queryString, RESULT_FORMAT);
+                    Call<SearchResult> query = mQuacker.search(queryString,
+                            DuckOptions.DUCK_FORMAT_JSON, DuckOptions.DUCK_SKIP_DISAMBIG);
                     query.enqueue(new Callback<SearchResult>() {
                         @Override
                         public void onResponse(Response<SearchResult> response, Retrofit retrofit) {
@@ -76,6 +80,8 @@ public class SearchFragment extends Fragment {
                         }
                     });
                 }
+
+                hideKeyboard();
 
             }
         });
@@ -122,5 +128,15 @@ public class SearchFragment extends Fragment {
         public int getItemCount() {
             return mResults.size();
         }
+    }
+
+    public void hideKeyboard() {
+        Activity activity = getActivity();
+        InputMethodManager inputManager = (InputMethodManager) activity
+                                            .getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        inputManager.hideSoftInputFromWindow(null == activity.getCurrentFocus() ?
+                                null : activity.getCurrentFocus().getWindowToken(),
+                                InputMethodManager.HIDE_NOT_ALWAYS);
     }
 }
