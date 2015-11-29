@@ -1,6 +1,8 @@
 package me.rikinmarfatia.quack;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -8,9 +10,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -18,6 +23,7 @@ import me.rikinmarfatia.quack.models.SearchResult;
 import me.rikinmarfatia.quack.models.Topic;
 import me.rikinmarfatia.quack.services.DuckDuckGoService;
 import me.rikinmarfatia.quack.services.RetrofitService;
+import me.rikinmarfatia.quack.util.DuckOptions;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.Response;
@@ -31,10 +37,8 @@ import retrofit.Retrofit;
 public class SearchFragment extends Fragment {
 
     public static final String TAG = "SearchFragment";
-    private static final String RESULT_FORMAT = "json";
 
-    private EditText mSearchBox;
-    private Button mSearchButton;
+    private SearchView mSearchBar;
     private RecyclerView mSearchResults;
     private ResultAdapter mAdapter;
     private DuckDuckGoService mQuacker;
@@ -52,17 +56,16 @@ public class SearchFragment extends Fragment {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_search, container, false);
 
-        mSearchBox = (EditText) v.findViewById(R.id.edittext_search);
-
-        mSearchButton = (Button) v.findViewById(R.id.btn_search);
-        mSearchButton.setOnClickListener(new View.OnClickListener() {
+        mSearchBar = (SearchView) v.findViewById(R.id.searchview_submit);
+        mSearchBar.setSubmitButtonEnabled(true);
+        mSearchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public void onClick(View v) {
-                String queryString = mSearchBox.getText().toString();
+            public boolean onQueryTextSubmit(String query) {
 
-                if(queryString.length() != 0) {
-                    Call<SearchResult> query = mQuacker.search(queryString, RESULT_FORMAT);
-                    query.enqueue(new Callback<SearchResult>() {
+                if(query.length() != 0) {
+                    Call<SearchResult> searchCall = mQuacker.search(query,
+                            DuckOptions.DUCK_FORMAT_JSON, 0);
+                    searchCall.enqueue(new Callback<SearchResult>() {
                         @Override
                         public void onResponse(Response<SearchResult> response, Retrofit retrofit) {
                             List<Topic> topics = response.body().getRelatedTopics();
@@ -77,6 +80,14 @@ public class SearchFragment extends Fragment {
                     });
                 }
 
+                hideKeyboard();
+
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
             }
         });
 
@@ -122,5 +133,15 @@ public class SearchFragment extends Fragment {
         public int getItemCount() {
             return mResults.size();
         }
+    }
+
+    public void hideKeyboard() {
+        Activity activity = getActivity();
+        InputMethodManager inputManager = (InputMethodManager) activity
+                                            .getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        inputManager.hideSoftInputFromWindow(null == activity.getCurrentFocus() ?
+                                null : activity.getCurrentFocus().getWindowToken(),
+                                InputMethodManager.HIDE_NOT_ALWAYS);
     }
 }

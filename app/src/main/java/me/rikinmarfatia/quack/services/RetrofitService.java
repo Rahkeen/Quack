@@ -1,6 +1,6 @@
 package me.rikinmarfatia.quack.services;
 
-import me.rikinmarfatia.quack.util.ServiceUrl;
+import me.rikinmarfatia.quack.util.DuckOptions;
 import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;
 
@@ -20,7 +20,7 @@ public final class RetrofitService {
      * Currently creates a DuckDuckGo service by default, if no URL provided
      */
     public static <S> S createService(Class<S> serviceClass) {
-         return createService(serviceClass, ServiceUrl.DUCK_URL);
+         return createService(serviceClass, DuckOptions.DUCK_URL);
     }
 
     /**

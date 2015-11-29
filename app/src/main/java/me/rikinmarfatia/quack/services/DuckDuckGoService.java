@@ -13,5 +13,7 @@ import retrofit.http.Query;
 public interface DuckDuckGoService {
 
     @GET("/")
-    Call<SearchResult> search (@Query("q") String query, @Query("format") String format);
+    Call<SearchResult> search (@Query("q") String query,
+                               @Query("format") String format,
+                               @Query("skip_disambig") int disambig);
 }
