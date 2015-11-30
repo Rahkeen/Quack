@@ -8,7 +8,7 @@
         android:id="@+id/searchview_submit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="0dp"
+        android:layout_marginTop="?attr/actionBarSize"
         android:iconifiedByDefault="false"
         android:inputType="text"
         android:imeOptions="actionSearch"
