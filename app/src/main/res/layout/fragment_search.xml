@@ -12,6 +12,7 @@
         android:iconifiedByDefault="false"
         android:inputType="text"
         android:imeOptions="actionSearch"
+        android:queryHint="@string/searchbar_hint"
         />
 
     <android.support.v7.widget.RecyclerView

@@ -11,12 +11,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import me.rikinmarfatia.quack.models.SearchResult;
@@ -48,7 +47,6 @@ public class SearchFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mQuacker = RetrofitService.createService(DuckDuckGoService.class);
-
     }
 
     @Override
@@ -69,6 +67,7 @@ public class SearchFragment extends Fragment {
                         @Override
                         public void onResponse(Response<SearchResult> response, Retrofit retrofit) {
                             List<Topic> topics = response.body().getRelatedTopics();
+                            removeEmptyTopics(topics);
                             mAdapter = new ResultAdapter(topics);
                             mSearchResults.setAdapter(mAdapter);
                         }
@@ -99,13 +98,46 @@ public class SearchFragment extends Fragment {
 
     private class ResultHolder extends RecyclerView.ViewHolder {
 
-        public TextView mResultText;
+        private TextView mSearchResultTitle;
+        private TextView mSearchResultDetails;
 
         public ResultHolder(View itemView) {
             super(itemView);
 
-            mResultText = (TextView) itemView;
+            mSearchResultTitle = (TextView)itemView.findViewById(R.id.searchresult_title);
+            mSearchResultDetails = (TextView)itemView.findViewById(R.id.searchresult_details);
         }
+
+        public void bindTopic(Topic topic) {
+
+            if(topic.getResult() != null) {
+                String resultString = topic.getResult();
+                Log.d(TAG, "bindTopic: " + resultString);
+                parseTitleAndDetails(resultString);
+            }
+
+        }
+
+        // TODO: possibly find a better way to extract details, regex filter maybe
+        private void parseTitleAndDetails(String resultString) {
+            String[] firstSplit = resultString.split("</a>");
+
+            // some results don't have description
+            if(firstSplit.length > 1) {
+                // some descriptions are hyphen (-) separated from the title
+                String details = firstSplit[1].trim();
+                if(details.charAt(0) == '-') {
+                    mSearchResultDetails.setText(details.substring(2));
+                } else {
+                    mSearchResultDetails.setText(details);
+                }
+            }
+
+            // after getting the description, get the title
+            String[] secondSplit = firstSplit[0].split(">");
+            mSearchResultTitle.setText(secondSplit[1]);
+        }
+
     }
 
     private class ResultAdapter extends RecyclerView.Adapter<ResultHolder> {
@@ -119,14 +151,15 @@ public class SearchFragment extends Fragment {
         @Override
         public ResultHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = getActivity().getLayoutInflater();
-            View v = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
+            View v = inflater.inflate(R.layout.view_searchresult, parent, false);
+
             return new ResultHolder(v);
         }
 
         @Override
         public void onBindViewHolder(ResultHolder holder, int position) {
             Topic topic = mResults.get(position);
-            holder.mResultText.setText(topic.getText());
+            holder.bindTopic(topic);
         }
 
         @Override
@@ -135,7 +168,27 @@ public class SearchFragment extends Fragment {
         }
     }
 
-    public void hideKeyboard() {
+    // Utility Functions =====================================================================
+
+    /**
+     * Removes the Empty Objects in the topics list caused by
+     * the disambiguation type.
+     */
+    private void removeEmptyTopics(List<Topic> topics) {
+        for(int i = 0; i < topics.size(); i++) {
+            if(topics.get(i).getResult() == null) {
+                while(i < topics.size()) {
+                    topics.remove(i);
+                }
+            }
+        }
+    }
+
+    /**
+     * Hides keyboard, used for if submit button is pushed to make sure
+     * the keyboard is no longer shown.
+     */
+    private void hideKeyboard() {
         Activity activity = getActivity();
         InputMethodManager inputManager = (InputMethodManager) activity
                                             .getSystemService(Context.INPUT_METHOD_SERVICE);

@@ -7,15 +7,15 @@ package me.rikinmarfatia.quack.models;
  */
 public class Topic {
     private String Result;
-    private String FirstUrl;
+    private String FirstURL;
     private String Text;
 
     public String getResult() {
         return Result;
     }
 
-    public String getFirstUrl() {
-        return FirstUrl;
+    public String getFirstURL() {
+        return FirstURL;
     }
 
     public String getText() {
