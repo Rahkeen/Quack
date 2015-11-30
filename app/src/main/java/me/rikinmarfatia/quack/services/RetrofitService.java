@@ -17,14 +17,14 @@ public final class RetrofitService {
     }
 
     /**
-     * Currently creates a DuckDuckGo service by default, if no URL provided
+     * Currently creates a DuckDuckGo service by default, if no URL provided.
      */
     public static <S> S createService(Class<S> serviceClass) {
          return createService(serviceClass, DuckOptions.DUCK_URL);
     }
 
     /**
-     * Creates a service to a given REST API
+     * Creates a service to a given REST API.
      */
     public static <S> S createService(Class<S> serviceClass, String baseUrl) {
         Retrofit retrofit = new Retrofit.Builder()
