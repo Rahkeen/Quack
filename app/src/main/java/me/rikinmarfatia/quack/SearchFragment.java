@@ -3,6 +3,8 @@ package me.rikinmarfatia.quack;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -11,11 +13,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.SearchView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import me.rikinmarfatia.quack.models.SearchResult;
@@ -100,21 +101,31 @@ public class SearchFragment extends Fragment {
 
         private TextView mSearchResultTitle;
         private TextView mSearchResultDetails;
+        private Button mSearchResultInfo;
 
         public ResultHolder(View itemView) {
             super(itemView);
 
             mSearchResultTitle = (TextView)itemView.findViewById(R.id.searchresult_title);
             mSearchResultDetails = (TextView)itemView.findViewById(R.id.searchresult_details);
+            mSearchResultInfo = (Button)itemView.findViewById(R.id.searchresults_info);
+
         }
 
-        public void bindTopic(Topic topic) {
+        public void bindTopic(final Topic topic) {
+            String resultString = topic.getResult();
+            parseTitleAndDetails(resultString);
 
-            if(topic.getResult() != null) {
-                String resultString = topic.getResult();
-                Log.d(TAG, "bindTopic: " + resultString);
-                parseTitleAndDetails(resultString);
-            }
+            mSearchResultInfo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Uri webResult = Uri.parse(topic.getFirstURL());
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, webResult);
+                    if(browserIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                        startActivity(browserIntent);
+                    }
+                }
+            });
 
         }
 
